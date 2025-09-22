@@ -1,0 +1,4 @@
+<%- include('header', {admin: false}); -%>
+<h1><%=error.status%> <%=message%></h1>
+<pre><%=error.stack%></pre>
+<%- include('footer'); -%>

@@ -1,0 +1,72 @@
+openapi: 3.0.0
+info:
+  title: Exhibit X Web
+  version: 0.1.0
+servers:
+  - url: https://exhibitx.heroku.com
+    description: Production
+paths:
+    /exhibit/heartbeat:
+      post:
+        summary: Indicates the exhibit is still up and reports state to server
+        requestBody:
+          required: true
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  activeDisplayId:
+                    type: integer
+                  activeDisplayType:
+                    type: string
+        responses:
+          '200':
+            description: OK
+
+    /exhibit/current:
+      get:
+        summary: Returns information on the currently running sketch
+        responses:
+          '200':
+            description: Get current display info. Payload depends on type
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                    type:
+                      type: string
+                    payload:
+                      type: object
+
+    /schedule/edit:
+      post:
+        summary: Edits an existing schedule or creates one if it does not already exist
+        requestBody:
+          required: true
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: integer
+                  title:
+                    type: string
+                  periodSeconds:
+                    type: integer
+                  sketches:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        SketchID:
+                          type: integer
+                        downloadURL:
+                          type: string
+                        title:
+                          type: string
+        responses:
+          '200':
+            description: OK

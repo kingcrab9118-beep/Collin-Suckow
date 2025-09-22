@@ -1,0 +1,31 @@
+{
+  "name": "exhibit-x-web",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "start": "node ./bin/www"
+  },
+  "dependencies": {
+    "@prisma/client": "^3.8.1",
+    "aws-sdk": "^2.1058.0",
+    "cookie-parser": "~1.4.4",
+    "debug": "~2.6.9",
+    "ejs": "^3.1.6",
+    "express": "~4.16.1",
+    "express-fileupload": "^1.2.1",
+    "express-session": "^1.17.2",
+    "google-auth-library": "^7.11.0",
+    "googleapis": "^95.0.0",
+    "http-errors": "~1.6.3",
+    "jade": "^0.29.0",
+    "moment": "^2.29.1",
+    "morgan": "~1.9.1",
+    "nodemailer": "^6.7.2",
+    "nodemon": "^2.0.15"
+  },
+  "devDependencies": {
+    "eslint": "^8.9.0",
+    "eslint-config-google": "^0.14.0",
+    "prisma": "^3.8.1"
+  }
+}

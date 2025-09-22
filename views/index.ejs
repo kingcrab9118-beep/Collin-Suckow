@@ -1,0 +1,103 @@
+<%- include('header', {admin, signedIn, failMessage}); -%>
+<script
+  type="text/javascript"
+  src="https://cdn.jsdelivr.net/npm/p5@1.4.0/lib/p5.min.js"
+></script>
+<script type="text/javascript" src="/background/noise.js"></script>
+<div class="container px-4 transparent">
+  <h1 class="title">Exhibit <i id="x">X</i></h1>
+  <h2>What is <%=title%>?</h2>
+  <p>
+    <%=title%> is a dynamic, digital art exhibit on the OSU cascades campus.
+    <%=title%> makes use of a number of sensors, most notably a Microsoft
+    Kinect. It uses the information pulled from the sensors to create evocative
+    and compelling pieces of art. And the best part is that you can submit your
+    own "sketches" to be displayed on <%=title%>!
+  </p>
+  <h2>How can I add my own work to <%=title%>?</h2>
+  <p>
+    To add a "sketch" to <%=title%> submit a zip file of a processing sketch in
+    the form below. Don't know what those words mean? Great! To learn the ins
+    and outs of processing we recommend checking some of the tutorials found
+    <a href="https://processing.org/tutorials/">here</a>. To figure out how to
+    "zip" the folder containing your sketch check
+    <a href="https://www.wikihow.com/Make-a-Zip-File">this guide</a> out. All
+    sketches will be vetted to ensure that they work properly with the
+    <%=title%> setup and adhear to our and OSU's guidelines.
+  </p>
+  <h2>Guidelines for submitting a sketch</h2>
+  <ul>
+    <li>A sketch must be able to be run in processing version 3.</li>
+    <li>
+      Sketches must not contain any content offensive to any ethnic, religious
+      or sexual group.
+    </li>
+    <li>
+      The main file processing file should have the same name as the zip file's
+      name and should be at the root (the default file structure for
+      processing).
+    </li>
+    <li>
+      A sketch should be full screen (1920x1080 resolution). This can be
+      achieved putting <code>fullScreen()</code> or
+      <code>size(1920, 1080)</code> in the <code>setup()</code> function of your
+      sketch.
+    </li>
+    <li>
+      The processing libraries that <%=title%> supports are
+      <a href="https://shiffman.net/p5/kinect/">Kinect for Processing</a>,
+      <a href="https://github.com/shiffman/Box2D-for-Processing">Box2d</a>,
+      <a href="http://www.haptic-data.com/toxiclibsjs/"> Toxic Libs</a>,
+      <a href="https://github.com/jrc03c/queasycam">Queasy Cam</a>, and
+      <a href="https://github.com/atduskgreg/opencv-processing"
+        >OpenCV for Processing</a
+      >. If you like to include a processing library not listed, email us at
+      <a href="mailto:exhibitxDev@gmail.com">exhibitxDev@gmail.com</a>
+      and we can see if we can add support for it on the Exhibit.
+    </li>
+  </ul>
+  <h2>Submit a Processing "Sketch"</h2>
+  <% if(signedIn) { %>
+  <form
+    class="row g-3 needs-validation"
+    action="/sketch"
+    method="post"
+    enctype="multipart/form-data"
+  >
+    <div class="col-md-4">
+      <div class="form-outline">
+        <input
+          class="form-control"
+          id="file"
+          name="file"
+          type="file"
+          accept=".zip"
+          required
+        />
+        <div class="invalid-feedback">Must select a processing zip file</div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <input class="btn btn-primary" type="submit" />
+    </div>
+  </form>
+  <% } else { %>
+  <p>You must sign in with your OSU email to submit a processing sketch.</p>
+  <div
+    id="g_id_onload"
+    data-client_id="<%=oauthClientID%>"
+    data-login_uri="<%=host%>/users/signIn"
+    data-auto_prompt="false"
+  ></div>
+  <div
+    class="g_id_signin"
+    data-type="standard"
+    data-size="large"
+    data-theme="outline"
+    data-text="sign_in_with"
+    data-shape="rectangular"
+    data-logo_alignment="left"
+  ></div>
+  <% } %>
+</div>
+<%- include('footer'); -%>

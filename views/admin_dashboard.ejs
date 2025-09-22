@@ -1,0 +1,238 @@
+<%- include('header', {admin: admin, signedIn: signedIn}); -%>
+
+
+<script>
+  window.onload = () => {
+    $('button[data-bs-toggle="tab"]').on('show.bs.tab', function(e) {
+        localStorage.setItem('activeTab', $(e.target).attr('data-bs-target'));
+    });
+    var activeTab = localStorage.getItem('activeTab');
+    if(activeTab){
+        $('button[data-bs-target="' + activeTab + '"]').tab('show');
+    }
+  };
+</script>
+
+<div class="container">
+
+        <!-- Exhibit status table -->
+        <div class="card p-2 m-2 shadow-sm">
+          <div class="d-flex">
+            <div class="flex-shrink-0">
+              <img style="height: 5em;" src=<%= stale ? "/images/sad_mac.png" : "/images/happy_mac.png" %> >
+            </div>
+            <div class="flex-grow-1 ms-3">
+              <h3 class="mt-0">Exhibit Status</h3>
+              <p>
+                Last heard from: <%= lastHeartbeat %><br>
+              </p>
+            </div>
+            </div>
+        </div>
+
+        <ul class="nav nav-tabs" id="myTab" role="tablist">
+          <li class="nav-item" role="presentation">
+            <button class="nav-link active" id="schedules-tab" data-bs-toggle="tab" data-bs-target="#schedules" type="button" role="tab" aria-controls="schedules" aria-selected="true">Schedules</button>
+          </li>
+          <li class="nav-item" role="presentation">
+            <button class="nav-link" id="sketches-tab" data-bs-toggle="tab" data-bs-target="#sketches" type="button" role="tab" aria-controls="sketches" aria-selected="false">Sketches</button>
+          </li>
+          <li class="nav-item" role="presentation">
+            <button class="nav-link" id="user-tab" data-bs-toggle="tab" data-bs-target="#user" type="button" role="tab" aria-controls="user" aria-selected="false">Users</button>
+          </li>
+        </ul>
+
+        
+        
+        
+        <div class="tab-content" id="myTabContent">
+          <!-- Schedules tab -->
+          <div class="tab-pane fade show active" id="schedules" role="tabpanel" aria-labelledby="schedules-tab">
+            <div class="card p-2 m-2 shadow-sm">
+              <a class="btn btn-primary" href="/schedule/edit">New Schedule</a>
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th scope="col">Id</th>
+                    <th scope="col">Name</th>
+                    <th scope="col">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <% schedules.forEach(function(schedule) { %>
+                    <% if( schedule.id == activeRow && runningType == "staticRotation") { %>
+                      <tr class="table-success">
+                    <% } else if(schedule.id == pendingRow && requestedType == "staticRotation") { %>
+                      <tr class="table-warning">
+                    <% } else { %>
+                      <tr>
+                    <% } %>
+                      <td><%= schedule.id %></td>
+                      <td><%= schedule.title %></td>
+                      <td>
+                        <form action="/schedule/select" method="post">
+                            <a class="btn btn-primary" href="/schedule/edit?id=<%= schedule.id %>">Edit</a>
+                            <% if( schedule.id == activeRow && runningType == "staticRotation") { %>
+                              <button class="btn btn-primary" disabled>Running</button>
+                            <% } else if(schedule.id == pendingRow && requestedType == "staticRotation") { %>
+                              <button class="btn btn-primary" disabled>Pending</button>
+                            <% } else { %>
+                              <button name="scheduleId" value="<%= schedule.id %>" class="btn btn-primary">Run</button>
+                            <% } %>
+                        </form>
+                      </td>
+                    </tr>
+                  <% }); %>
+
+                </tbody>
+              </table>
+            </div>
+          </div>
+          <div class="tab-pane fade" id="sketches" role="tabpanel" aria-labelledby="sketches-tab">
+            <!-- Sketch table card -->
+            <div class="card p-2 m-2 shadow-sm">
+              <h3>Sketches</h3>
+              <table class="table">
+                  <thead>
+                    <tr>
+                      <th scope="col">Id</th>
+                      <th scope="col">Title</th>
+                      <th scope="col">User</th>
+                      <th scope="col">Created At</th>
+                      <th scope="col">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                      <% sketches.filter((sketch) => sketch.status === 'APPROVED').forEach(function(sketch) { %>
+                          <% if( sketch.id == activeRow && runningType == "singleSketch") { %>
+                            <tr class="table-success"  id="sketch-<%= sketch.id %>">
+                          <% } else if(sketch.id == pendingRow && requestedType == "singleSketch") { %>
+                            <tr class="table-warning"  id="sketch-<%= sketch.id %>">
+                          <% } else { %>
+                            <tr  id="sketch-<%= sketch.id %>">
+                          <% } %>
+                              <th scope="row"><%= sketch.id %></th>
+                              <td><a href="/sketch?sketchID=<%= sketch.id %>" ><%= sketch.title %></a></td>
+                              <td><%= sketch.userEmail %></td>
+                              <td ><%= (new Date(sketch.createdAt)).toLocaleDateString("en-US") %></td>
+                              <td>
+                                <form action="/sketch/select" method="post">
+                                  <% if( sketch.id == activeSketch && runningType == "singleSketch") { %>
+                                    <button class="btn btn-primary" disabled>Running</button>
+                                  <% } else if(sketch.id == pendingRow && requestedType == "singleSketch") { %>
+                                    <button class="btn btn-primary" disabled>Pending</button>
+                                  <% } else { %>
+                                    <button name="sketchId" value="<%= sketch.id %>" class="btn btn-primary">Run</button>
+                                  <% } %>
+                                <button name="status" type="button" onclick="reject('<%= sketch.id %>')" class="btn btn-danger">Reject</button>
+                              </form>
+
+                              </td>
+                          </tr>
+                      <% }); %>
+                  </tbody>
+                </table>
+            </div>
+
+            <div class="card p-2 m-2 shadow-sm">
+              <h3>Unapproved Sketches</h3>
+              <table class="table">
+                  <thead>
+                    <tr>
+                      <th scope="col">Id</th>
+                      <th scope="col">Title</th>
+                      <th scope="col">User</th>
+                      <th scope="col">Created At</th>
+                      <th scope="col">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                      <% sketches.filter((sketch) => sketch.status === 'PENDING').forEach(function(sketch) { %>
+                            <tr id="sketch-<%= sketch.id %>" >
+                              <th scope="row"><%= sketch.id %></th>
+                              <td><a href="/sketch?sketchID=<%= sketch.id %>" ><%= sketch.title %></a></td>
+                              <td><%= sketch.userEmail %></td>
+                              <td ><%= (new Date(sketch.createdAt)).toLocaleDateString("en-US") %></td>
+                              <td>
+                                <button name="status" onclick="approve('<%= sketch.id %>')" class="btn btn-success">Approve</button>
+                                <button name="status" onclick="reject('<%= sketch.id %>')" class="btn btn-danger">Reject</button>
+                              </td>
+                          </tr>
+                      <% }); %>
+                  </tbody>
+                </table>
+            </div>
+          </div>
+          <div class="tab-pane fade" id="user" role="tabpanel" aria-labelledby="user-tab">
+             <!-- User table -->
+
+         <div class="card p-2 m-2 shadow-sm">
+          <h3>Users</h3>
+          <table class="table">
+              <thead>
+                <tr>
+                  <th scope="col">Email</th>
+                  <th scope="col">Permission Level</th>
+                  <th scope="col">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                  <% users.forEach(function(user) { %>
+                        <tr>
+                          <td><%= user.email %></td>
+                          <td><%= user.admin ? "Admin" : "Standard" %></td>
+                          <td>
+                            <form action="/users/updateUser" method="post">
+                              <input type="hidden" name="user" value="<%= user.email %>">
+                              <% if( user.admin) { %>
+                                <button name="admin" value="false" class="btn btn-warning">Revoke Admin</button>
+                              <% } else { %>
+                                <button name="admin" value="true" class="btn btn-warning">Give Admin</button>
+                              <% } %>
+                            </form>
+                          </td>
+                      </tr>
+                  <% }); %> 
+              </tbody>
+          </table>
+
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  function approve(sketchID) {
+    document.getElementById(`sketch-${sketchID}`).remove();
+    const options = {
+      method: 'POST',
+      body: JSON.stringify({sketchID}),
+      headers: {
+          'Content-Type': 'application/json'
+      }
+    };
+    fetch('/sketch/approve', options).then(_ => {
+      window.location.href = window.location.href;
+    });
+  }
+
+  function reject(sketchID) {
+    const rejectionReason = prompt('Reason for rejecting this sketch:');
+    if(rejectionReason !== null) {
+      document.getElementById(`sketch-${sketchID}`).remove();
+      const options = {
+        method: 'POST',
+        body: JSON.stringify({sketchID, rejectionReason}),
+        headers: {
+            'Content-Type': 'application/json'
+        }
+      };
+      fetch('/sketch/reject', options).then(_ => {
+        window.location.href = window.location.href;
+      });
+    }
+  }
+</script>
+
+<%- include('footer'); -%>

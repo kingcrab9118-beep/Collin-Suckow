@@ -1,0 +1,155 @@
+<%- include('header', { admin }); -%>
+    <script>
+        window.onload = () => {
+            var schedule = JSON.parse(`<%- schedule %>`) || {
+                title: "",
+                periodSeconds: 60,
+                sketches: []
+            };
+            const new_schedule = schedule.id == undefined;
+
+            var approvedSketches = JSON.parse(`<%- sketches %>`);
+        
+            if (!new_schedule) {
+                $("#editingTitle").html(`Editing ${schedule.title}`);
+                $("#formScheduleTitle").val(schedule.title);
+            }
+
+            $("#formScheduleTitle").on("change", () => {
+                schedule.title = $("#formScheduleTitle").val()
+            });
+
+            $("#formSchedulePeriod").val(schedule.periodSeconds);
+
+            $("#formSchedulePeriod").on("change", () => {
+                schedule.periodSeconds = $("#formSchedulePeriod").val();
+            });
+
+            for (const sketchIndex in approvedSketches) {
+                var addButton = $("<button />", {
+                    text: "Add",
+                    class: "btn btn-success",
+                    click: () => {
+                        console.log("Pushing");
+                        schedule.sketches.push(approvedSketches[sketchIndex]);
+                        redrawSketchList(schedule.sketches, $("#sketchesTarget"));
+                        $("#sketchModal").modal('hide');
+                    }
+                });
+                $("#sketchModalBody").append($(`
+                    <div class="input-group mt-1"> \
+                        <input type="text" class="form-control" value="${approvedSketches[sketchIndex].title}" readonly> \
+                    </div>`).append(addButton));
+            }
+
+            const formError = (schedule) => {
+                if (schedule === undefined || schedule.title === undefined || schedule.periodSeconds === undefined || schedule.sketches === undefined) return "Internal Error. Please contact an admin.";
+                if (schedule.title === "") return "Schedule name must not be empty!";
+                if (isNaN(parseInt(schedule.periodSeconds)) || parseInt(schedule.periodSeconds) < 1) return "Period must be an integer greater than 0!";
+                if (schedule.sketches.length < 1) return "Schedule must have at least one sketch assigned!";
+                return undefined;
+            }
+
+
+            const redrawSketchList = (sketches, target) => {
+                target.empty();
+
+                if (sketches.length == 0) {
+                    target.append($("<h3>This schedule has no sketches :(</h3>"));
+                } else {
+                    for (const sketchIndex in sketches) {
+                        const sketch = sketches[sketchIndex];
+                        const removeButton = $("<button />", {
+                            text: "Remove",
+                            class: "btn btn-danger",
+                            click: () => {
+                                schedule.sketches.splice(sketchIndex, 1);
+                                redrawSketchList(schedule.sketches, target);
+                            }
+                        });
+    
+                        const label = $(`<div class="input-group mt-1"> \
+                            <input type="text" class="form-control" value="${sketch.title}" readonly> \
+                            </div>`).append(removeButton)
+                        target.append(label);
+                    }
+                }
+
+            }
+
+            const showError = text => {
+                $("#errorAlert").html(text);
+                $("#errorAlert").show();
+            }
+
+            $("#scheduleSubmitButton").on("click", () => {
+                if (formError(schedule)) {
+                    showError(formError(schedule));
+                    return;
+                }
+
+                $.ajax({
+                    type: "POST",
+                    url: "/schedule/edit",
+                    data: {
+                        schedulePayload: JSON.stringify(schedule)
+                    },
+                    complete: () => {
+                        window.location.href = "/admin";
+                    },
+                });
+            });
+
+            redrawSketchList(schedule.sketches, $("#sketchesTarget"));
+        };
+    </script>
+    <div class="container mt-1">
+        <div class="alert alert-danger mt-3" role="alert" id="errorAlert" style="display: none;">
+            A simple danger alert—check it out!
+        </div>
+        <h2 id="editingTitle">
+            Create New Schedule
+        </h2>
+        <form>
+            <div class="mt-3">
+                <label for="formScheduleTitle" class="form-label">Name</label>
+                <input type="text" class="form-control" id="formScheduleTitle" value="" %>">
+            </div>
+
+            <div class="mt-3">
+                <label for="formSchedulePeriod" class="form-label">Period (Seconds)</label>
+                <input type="number" class="form-control" id="formSchedulePeriod" min="1" %>">
+            </div>
+
+            <div class="mt-3">
+                <label class="form-label">Sketches</label>
+                <div id="sketchesTarget"></div>
+            </div>
+
+            <button type="button" class="btn btn-success mt-1" data-bs-toggle="modal" data-bs-target="#sketchModal">
+                Add New Sketch
+            </button>
+            <div class="mt-3">
+                <button class="btn btn-primary" form type="button" id="scheduleSubmitButton">Submit</button>
+                <a class="btn btn-danger" href="/admin">Cancel</a>
+            </div>
+            
+        </form>
+
+        <!-- Modal -->
+        <div class="modal fade" id="sketchModal" tabindex="-1" aria-labelledby="sketchModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-scrollable modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="sketchModalLabel">Approved Sketches</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body" id="sketchModalBody"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+   
+      
+
+<%- include('footer'); -%>

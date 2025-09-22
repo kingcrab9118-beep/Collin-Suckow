@@ -1,0 +1,67 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Status {
+  PENDING
+  APPROVED
+  REJECTED
+  PULLED
+}
+
+model Sketch {
+  id                Int      @default(autoincrement()) @id
+  title             String
+  status            Status   @default(PENDING)
+  rejectionReason   String   @default("")
+  createdAt         DateTime @default(now())
+  user              User     @relation(fields: [userEmail], references: [email])
+  userEmail         String
+  SketchesOnSchedules SketchesOnSchedules[]
+}
+
+model ExhibitHeartbeat {
+  id                Int      @id @default(autoincrement())
+  receivedAt        DateTime @default(now())
+  activeDisplayId   Int      @default(-1)
+  activeDisplayType String   @default("")
+}
+
+model User {
+  email   String   @id
+  admin   Boolean  @default(false)
+  sketchs Sketch[]
+}
+
+model SelectedDisplay {
+  id        Int      @id @default(autoincrement())
+  type      String
+  createdAt DateTime @default(now())
+  displayId Int
+}
+
+model SketchSchedule {
+  id                  Int                   @id @default(autoincrement())
+  title               String
+  periodSeconds       Int
+  createdAt           DateTime              @default(now())
+  modifiedAt          DateTime              @default(now())
+  SketchesOnSchedules SketchesOnSchedules[]
+}
+
+model SketchesOnSchedules {
+  id                  Int                   @id @default(autoincrement())
+  schedule   SketchSchedule @relation(fields: [scheduleId], references: [id])
+  scheduleId Int
+  sketch     Sketch         @relation(fields: [sketchId], references: [id])
+  sketchId   Int
+  order      Int
+}

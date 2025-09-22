@@ -1,0 +1,23 @@
+div.transparent {
+  background-color: rgba(245, 245, 255, 0.8);
+  border-radius: 30px;
+  padding: 10px;
+}
+
+h1.title {
+  font-size: 10vw;
+}
+
+i#x {
+  animation-name: color-change;
+  animation-duration: 10s;
+  animation-iteration-count: infinite;
+}
+
+@keyframes color-change {
+  0%   {color: red;}
+  25%  {color: yellow;}
+  50%  {color: blue;}
+  75%  {color: green;}
+  100% {color: red;}
+}
